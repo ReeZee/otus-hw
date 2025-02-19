@@ -1,5 +1,5 @@
-
 // Вам нужно реализовать программу обработки команд для дисплея.
+
 // На вход пользователь подает:
 // * 2 числа: размер дисплея
 // * 1 число: цвет дисплея по-умолчанию (1 - красный, 2 - зеленый, 3 - синий)
@@ -84,8 +84,6 @@ mod tests {
         let mut expected = Matrix::new(4, 4, 1);
         expected.set_colour(2, 2, 3);
         assert_eq!(display.matrix, expected);
-        println!("Happy case: ");
-        display.matrix.display();
     }
 
     #[test]
