@@ -42,30 +42,37 @@ fn create_display(max_width: u32, max_height: u32, default_colour: u8) -> Displa
 fn process_commands(display: &mut Display, input: Vec<u64>) {
     let mut offset = 0;
     for (idx, command) in input.iter().enumerate() {
-        if idx < offset {
-            continue;
-        }
-        match command {
-            1 => {
-                let x = input.get(idx + 1).unwrap().clone();
-                let y = input.get(idx + 2).unwrap().clone();
-                if x > display.boundaries.0 as u64 || y > display.boundaries.1 as u64 {
-                    panic!("Out of display boundaries");
+        //        if idx < offset {
+        //            continue;
+        //        }
+
+        while idx >= offset {
+            match command {
+                1 => {
+                    let x = input[idx + 1];
+                    let y = input[idx + 2];
+                    if x > display.boundaries.0 as u64 || y > display.boundaries.1 as u64 {
+                        panic!("Out of display boundaries");
+                    }
+                    display.current_pixel = (x, y);
+                    offset += 3;
                 }
-                display.current_pixel = (x, y);
-                offset += 3;
-            }
-            2 => {
-                let colour = input.get(idx + 1).unwrap().clone() as u8;
-                if colour > 3 || colour < 1 {
-                    panic!("No such colour");
+                2 => {
+                    let colour = input[idx + 1] as u8;
+                    if !(1..=3).contains(&colour) {
+                        panic!("No such colour");
+                    }
+                    display.matrix.set_colour(
+                        display.current_pixel.0,
+                        display.current_pixel.1,
+                        colour,
+                    );
+                    offset += 2;
                 }
-                display
-                    .matrix
-                    .set_colour(display.current_pixel.0, display.current_pixel.1, colour);
-                offset += 2;
+                _ => {
+                    panic!("No such command");
+                }
             }
-            _ => {}
         }
     }
 }
@@ -101,6 +108,13 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
+    fn test_error_invalid_command() {
+        let mut display = create_display(4, 4, 1);
+        process_commands(&mut display, vec![1, 2, 2, 3, 5]);
+    }
+
+    #[test]
     fn test_other_case() {
         let mut display = create_display(5, 5, 3);
         process_commands(&mut display, vec![1, 3, 2, 2, 1]);
@@ -133,7 +147,7 @@ mod tests {
         expected.set_colour(4, 4, 2);
         expected.set_colour(5, 5, 1);
         assert_eq!(display.matrix, expected);
-        println!("Complex case: ");
+        println!("More complex case: ");
         display.matrix.display();
     }
 }
@@ -162,7 +176,6 @@ fn main() {
     input.clear();
     io::stdin().read_line(&mut input).unwrap();
     let commands = input
-        .trim()
         .split_whitespace()
         .map(|x| x.parse().unwrap())
         .collect();
@@ -174,7 +187,6 @@ fn main() {
 
 fn parse_dimensions(input: &str) -> (u32, u32) {
     let parts: Vec<u32> = input
-        .trim()
         .split_whitespace()
         .map(|x| x.parse().expect("Неверный ввод размера"))
         .collect();
