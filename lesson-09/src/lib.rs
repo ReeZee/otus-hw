@@ -21,11 +21,17 @@ pub fn first(tuple: &mut (usize, usize), boolean: bool) -> &mut usize {
 
 // 2: Принимает мутабельную ссылку на слайс и число N. Возвращает мутабельную ссылку на N-ый элемент.
 pub fn second(x: &mut [i32], n: usize) -> &mut i32 {
+    if n > x.len() {
+        panic!("n too large");
+    }
     &mut x[n]
 }
 
 // 3: Принимает слайс и число N. Возвращает ссылку на N-ый элемент слайса с конца.
 pub fn third(x: &[i32], n: usize) -> &i32 {
+    if n > x.len() {
+        panic!("n too large");
+    }
     let rev = x.len() - 1 - n;
     &x[rev]
 }
@@ -34,6 +40,9 @@ pub fn third(x: &[i32], n: usize) -> &i32 {
 //      с нулевого по N-1;
 //      с N-го по последний;
 pub fn fourth(x: &[i32], n: usize) -> (&[i32], &[i32]) {
+    if n > x.len() {
+        panic!("n too large");
+    }
     x.split_at(n)
 }
 
@@ -85,6 +94,14 @@ mod tests {
         assert_ne!(3, *second(&mut x[..], 4));
         assert_ne!(4, *second(&mut x[..], 3));
     }
+
+    #[test]
+    #[should_panic]
+    fn second_panics() {
+        let x = &mut [0, 1, 2, 3, 4, 5];
+        assert_eq!(0, *second(&mut x[..], usize::MAX - 1));
+    }
+
     #[test]
     fn third_works() {
         let x = &mut [0, 1, 2, 3, 4, 5];
@@ -97,6 +114,14 @@ mod tests {
         assert_ne!(3, *third(&x[..], 4));
         assert_ne!(4, *third(&x[..], 3));
     }
+
+    #[test]
+    #[should_panic]
+    fn third_panics() {
+        let x = &mut [0, 1, 2, 3, 4, 5];
+        println!("{}", *third(&x[..], usize::MAX - 1));
+    }
+
     #[test]
     fn fourth_works() {
         let x = &mut [0, 1, 2, 3, 4, 5];
@@ -123,6 +148,13 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
+    fn fourth_panics() {
+        let x = &mut [0, 1, 2, 3, 4, 5];
+        fourth(&x[..], usize::MAX - 1);
+    }
+
+    #[test]
     fn fifth_works() {
         let result = fifth(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
         assert_eq!(&[1, 2, 3, 4], result[0]);
@@ -132,33 +164,73 @@ mod tests {
 
         let result = fifth(&[1, 2, 3]);
         println!("{result:?}");
+        assert_eq!(&[1], result[0]);
+        assert_eq!(&[2], result[1]);
+        assert_eq!(&[3], result[2]);
+        assert!(result[3].is_empty());
 
         let result = fifth(&[1, 2, 3, 4]);
         assert_eq!([[1], [2], [3], [4]], result);
         println!("{result:?}");
+        assert_eq!(&[1], result[0]);
+        assert_eq!(&[2], result[1]);
+        assert_eq!(&[3], result[2]);
+        assert_eq!(&[4], result[3]);
 
         let result = fifth(&[1, 2, 3, 4, 5]);
         println!("{result:?}");
+        assert_eq!(&[1, 2], result[0]);
+        assert_eq!(&[3], result[1]);
+        assert_eq!(&[4], result[2]);
+        assert_eq!(&[5], result[3]);
 
         let result = fifth(&[1, 2, 3, 4, 5, 6]);
         println!("{result:?}");
+        assert_eq!(&[1, 2], result[0]);
+        assert_eq!(&[3, 4], result[1]);
+        assert_eq!(&[5], result[2]);
+        assert_eq!(&[6], result[3]);
 
         let result = fifth(&[1, 2, 3, 4, 5, 6, 7]);
         println!("{result:?}");
+        assert_eq!(&[1, 2], result[0]);
+        assert_eq!(&[3, 4], result[1]);
+        assert_eq!(&[5, 6], result[2]);
+        assert_eq!(&[7], result[3]);
 
         let result = fifth(&[1, 2, 3, 4, 5, 6, 7, 8]);
         println!("{result:?}");
+        assert_eq!(&[1, 2], result[0]);
+        assert_eq!(&[3, 4], result[1]);
+        assert_eq!(&[5, 6], result[2]);
+        assert_eq!(&[7, 8], result[3]);
 
         let result = fifth(&[1, 2, 3, 4, 5, 6, 7, 8, 9]);
         println!("{result:?}");
+        assert_eq!(&[1, 2, 3], result[0]);
+        assert_eq!(&[4, 5], result[1]);
+        assert_eq!(&[6, 7], result[2]);
+        assert_eq!(&[8, 9], result[3]);
 
         let result = fifth(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
         println!("{result:?}");
+        assert_eq!(&[1, 2, 3], result[0]);
+        assert_eq!(&[4, 5, 6], result[1]);
+        assert_eq!(&[7, 8], result[2]);
+        assert_eq!(&[9, 10], result[3]);
 
         let result = fifth(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
         println!("{result:?}");
+        assert_eq!(&[1, 2, 3], result[0]);
+        assert_eq!(&[4, 5, 6], result[1]);
+        assert_eq!(&[7, 8, 9], result[2]);
+        assert_eq!(&[10, 11], result[3]);
 
         let result = fifth(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
         println!("{result:?}");
+        assert_eq!(&[1, 2, 3], result[0]);
+        assert_eq!(&[4, 5, 6], result[1]);
+        assert_eq!(&[7, 8, 9], result[2]);
+        assert_eq!(&[10, 11, 12], result[3]);
     }
 }
