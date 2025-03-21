@@ -39,10 +39,16 @@ pub fn fourth(x: &[i32], n: usize) -> (&[i32], &[i32]) {
 
 // 5: Принимает слайс и возвращает массив слайсов, содержащий четыре равные (насколько возможно) части исходного слайса.
 pub fn fifth(x: &[i32]) -> [&[i32]; 4] {
-    let mut array: [&[i32]; 4] = [&[0]; 4];
-    for (id, chunk) in x.chunks(4).enumerate() {
-        array[id] = chunk;
-    }
+    let first_split = if x.len() % 4 == 0 {
+        x.len().div_ceil(2)
+    } else {
+        (x.len() + 1).div_ceil(2)
+    };
+    let (left, right) = x.split_at(first_split);
+    let left = left.split_at(left.len().div_ceil(2));
+    let right = right.split_at(right.len().div_ceil(2));
+
+    let array = [left.0, left.1, right.0, right.1];
     array
 }
 #[cfg(test)]
@@ -123,5 +129,36 @@ mod tests {
         assert_eq!(&[5, 6, 7, 8], result[1]);
         assert_eq!(&[9, 10, 11, 12], result[2]);
         assert_eq!(&[13, 14, 15], result[3]);
+
+        let result = fifth(&[1, 2, 3]);
+        println!("{result:?}");
+
+        let result = fifth(&[1, 2, 3, 4]);
+        assert_eq!([[1], [2], [3], [4]], result);
+        println!("{result:?}");
+
+        let result = fifth(&[1, 2, 3, 4, 5]);
+        println!("{result:?}");
+
+        let result = fifth(&[1, 2, 3, 4, 5, 6]);
+        println!("{result:?}");
+
+        let result = fifth(&[1, 2, 3, 4, 5, 6, 7]);
+        println!("{result:?}");
+
+        let result = fifth(&[1, 2, 3, 4, 5, 6, 7, 8]);
+        println!("{result:?}");
+
+        let result = fifth(&[1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        println!("{result:?}");
+
+        let result = fifth(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        println!("{result:?}");
+
+        let result = fifth(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+        println!("{result:?}");
+
+        let result = fifth(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+        println!("{result:?}");
     }
 }
