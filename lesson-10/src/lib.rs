@@ -1,4 +1,3 @@
-
 // Слайсы. (мы спрашиваем эту задачку на собеседования на уровено Junior Engineer)
 // Ring Buffer (кольцевой буффер) - структура данных, которая позволяет очень удобно реализовывать очередь на массиве фиксированного размера.
 // https://ru.wikipedia.org/wiki/%D0%9A%D0%BE%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%D0%BE%D0%B9_%D0%B1%D1%83%D1%84%D0%B5%D1%80
@@ -70,7 +69,7 @@ pub fn read(rb: &mut RingBuffer, num_of_elements: usize) -> Vec<u8> {
         rb.read_idx = 0;
     }
     // Keep write pointer smaller than the length
-    rb.write_idx = rb.write_idx - rb.read_idx;
+    rb.write_idx -= rb.read_idx;
     elements
 }
 
