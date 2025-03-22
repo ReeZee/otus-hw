@@ -57,8 +57,7 @@ pub fn fifth(x: &[i32]) -> [&[i32]; 4] {
     let left = left.split_at(left.len().div_ceil(2));
     let right = right.split_at(right.len().div_ceil(2));
 
-    let array = [left.0, left.1, right.0, right.1];
-    array
+    [left.0, left.1, right.0, right.1]
 }
 #[cfg(test)]
 mod tests {
