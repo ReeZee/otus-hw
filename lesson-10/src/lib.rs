@@ -22,54 +22,51 @@ pub fn create(size: usize) -> RingBuffer {
     RingBuffer {
         read_idx: 0,
         write_idx: 0,
-        data: Vec::with_capacity(size),
+        data: vec![0; size],
     }
 }
 
 pub fn write(rb: &mut RingBuffer, elements: &[u8]) -> usize {
     let mut written = 0;
     for element in elements {
-        // if buffer full - stop writing
-        if rb.data.len() == rb.data.capacity() {
-            continue;
+        if rb.write_idx >= rb.data.len() {
+            if rb.data[0] == 0 {
+                rb.write_idx = 0;
+            } else {
+                match rb.data[rb.read_idx] {
+                    0 => rb.write_idx = rb.read_idx,
+                    _ => continue,
+                }
+            }
         }
-
-        // Set write_idx equal to last read_idx when write_idx can't increase due to capacity
-        if rb.write_idx == rb.data.capacity() {
-            rb.write_idx = rb.read_idx;
-        }
-        // Insert and increment
-        rb.data.insert(rb.write_idx, *element);
-        written += 1;
+        rb.data[rb.write_idx] = *element;
         rb.write_idx += 1;
+        written += 1;
     }
     written
 }
 
 pub fn read(rb: &mut RingBuffer, num_of_elements: usize) -> Vec<u8> {
-    let mut elements: Vec<u8> = Vec::with_capacity(num_of_elements);
-    // null read idx
-    rb.read_idx = 0;
+    let mut elements = Vec::new();
 
     for _ in 0..num_of_elements {
-        // check if there is data to read and add the read data to a temporary vector
-        if rb.read_idx < rb.data.len() {
-            elements.push(rb.data[rb.read_idx]);
-            rb.read_idx += 1;
+        if rb.read_idx == rb.data.len() {
+            rb.read_idx = 0;
+        }
+        if rb.data[rb.read_idx] == 0 {
+            continue;
+        }
+        elements.push(rb.data[rb.read_idx]);
+        rb.data[rb.read_idx] = 0;
+        rb.read_idx += 1;
+    }
+    if rb.write_idx >= rb.data.len() {
+        if rb.data[0] == 0 {
+            rb.write_idx = 0;
+        } else {
+            rb.write_idx = rb.read_idx;
         }
     }
-    // clean the read data from original vector
-    for _ in 0..rb.read_idx {
-        rb.data.remove(0);
-    }
-
-    // If the vector is empty - reset the pointers
-    if rb.data.is_empty() {
-        rb.write_idx = 0;
-        rb.read_idx = 0;
-    }
-    // Keep write pointer smaller than the length
-    rb.write_idx -= rb.read_idx;
     elements
 }
 
@@ -91,13 +88,13 @@ mod tests {
         let mut rb = create(10);
         write(&mut rb, "abcdefghij".as_bytes());
         print(rb.clone());
+        println!("{:?}", String::from_utf8(rb.data.clone()));
         rb
     }
 
     #[test]
     fn rb_created() {
         let rb: RingBuffer = create(10);
-        assert_eq!(0, rb.data.len());
         assert_eq!(10, rb.data.capacity());
     }
 
@@ -173,43 +170,16 @@ mod tests {
     #[test]
     fn test() {
         let mut rb = create(3);
+        println!("{:?}", String::from_utf8(rb.data.clone()));
         assert_eq!(2, write(&mut rb, "ab".as_bytes()));
+        println!("{:?}", String::from_utf8(rb.data.clone()));
         assert_eq!(1, write(&mut rb, "cd".as_bytes()));
+        println!("{:?}", String::from_utf8(rb.data.clone()));
         assert_eq!("a".as_bytes(), read(&mut rb, 1));
+        println!("{:?}", String::from_utf8(rb.data.clone()));
         assert_eq!(1, write(&mut rb, "e".as_bytes()));
+        println!("{:?}", String::from_utf8(rb.data.clone()));
         assert_eq!("bc".as_bytes(), read(&mut rb, 2));
+        println!("{:?}", String::from_utf8(rb.data.clone()));
     }
 }
-
-/*
-//Circular buffer with ovetwrite
-
-pub fn write_v2(rb: &mut RingBuffer, elements: &[u8]) -> usize {
-    let mut written = 0;
-    for element in elements {
-        if rb.data.len() < rb.data.capacity() {
-            rb.data.push(*element);
-            written += 1;
-            continue;
-        }
-        rb.data[rb.write_idx] = *element;
-        if rb.write_idx < rb.data.capacity() - 1 {
-            rb.write_idx += 1
-        } else {
-            rb.write_idx = 0
-        };
-        written += 1;
-    }
-    written
-}
-
-pub fn read_v2(rb: &mut RingBuffer, num_of_elements: usize) -> Vec<u8> {
-    let mut elements: Vec<u8> = Vec::with_capacity(num_of_elements);
-    for _ in 0..num_of_elements {
-        elements.push(rb.data.remove(0));
-        rb.read_idx += 1;
-    }
-    elements
-}
-
-*/
