@@ -58,7 +58,6 @@ pub fn write(rb: &mut RingBuffer, elements: &[u8]) -> Result<usize, RBErrors> {
         rb.write_idx += 1;
         written += 1;
     }
-    // Пусть при записи мы возвращаем Ok(кол-во успешно записанных байт), если мы хоть что-то записали в буффер, и типизированную ошибку NoSpaceLeft, если мы ничего не записали в буффер.
     match written {
         0 => Err(RBErrors::NoSpaceLeft),
         written => Ok(written),
@@ -86,7 +85,6 @@ pub fn read(rb: &mut RingBuffer, num_of_elements: usize) -> Option<Vec<u8>> {
             rb.write_idx = rb.read_idx;
         }
     }
-    // То же самое касается чтения: если мы что-то прочитали, то давайте возвращать Some(прочитанный буффер), если же буффер был пуст, то будем возвращать None.
     if elements.is_empty() {
         return None;
     }
