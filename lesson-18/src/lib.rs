@@ -39,6 +39,9 @@ pub fn create(size: usize) -> RingBuffer {
 }
 
 pub fn write(rb: &mut RingBuffer, elements: &[u8]) -> Result<usize, RBErrors> {
+    if elements.is_empty() {
+        return Ok(0);
+    }
     let mut written = 0;
     for element in elements {
         if rb.write_idx >= rb.data.len() {
@@ -116,6 +119,12 @@ mod tests {
         let rb: RingBuffer = create(10);
         assert_eq!(10, rb.data.len());
         assert_eq!(10, rb.data.capacity());
+    }
+
+    #[test]
+    fn rb_write_empty() {
+        let mut rb: RingBuffer = create(10);
+        assert_eq!(Ok(0), write(&mut rb, "".as_bytes()));
     }
 
     #[test]
