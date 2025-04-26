@@ -1,12 +1,8 @@
-// Обобщаем поведение с помощью шаблонов и статического полиморфизма.
-// Пусть у нас 3 типа фигур: треугольник, прямоугольник и круг
-// Создайте трейт Shape, в котором есть методы:
-// get_area(&self) -> f64 // возвращает зачение площади фигуры
-// get_perimeter(&self) -> f64 // возвращает значение периметра фигуры
-// Реализуйте данный трейт для треугольника, прямоугольника и круга
+// Возьмите код из предыдущего занятия.
+// И теперь представим, что список фигур для которых мы хотим выполнить вычисления
+// неизвестен на этапе компиляции программы.
 
-// Напишите 1 функцию perimeter_by_area, которая может принимать любую фигуру
-// и возвращает отнощение ее периметра к площади (P/A)
+// Исправьте фунцию perimeter_by_area, так чтобы она принимала параметр Box<dyn Shape>
 
 use std::f64::consts::PI;
 
@@ -57,8 +53,8 @@ impl Shape for Circle {
 }
 
 // исправьте сигнатуру и добавьте реализацию
-pub fn perimeter_by_area(s: impl Shape) -> f64 {
-    s.get_perimeter() / s.get_area()
+pub fn perimeter_by_area(b: Box<dyn Shape>) -> f64 {
+    b.get_perimeter() / b.get_area()
 }
 
 #[cfg(test)]
@@ -69,17 +65,17 @@ mod tests {
     #[test]
     fn test() {
         _ = relative_eq!(
-            perimeter_by_area(Triangle {
+            perimeter_by_area(Box::new(Triangle {
                 sides_lens: [3.0, 4.0, 5.0]
-            }),
+            })),
             2.0
         );
-        _ = relative_eq!(perimeter_by_area(Circle { radius: 2.0 }), 1.0);
+        _ = relative_eq!(perimeter_by_area(Box::new(Circle { radius: 2.0 })), 1.0);
         _ = relative_eq!(
-            perimeter_by_area(Rectangle {
+            perimeter_by_area(Box::new(Rectangle {
                 width: 2.0,
                 height: 3.0,
-            }),
+            })),
             1.6666
         );
     }
