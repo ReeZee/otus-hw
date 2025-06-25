@@ -15,6 +15,7 @@
 pub struct RingBuffer {
     read_idx: usize,
     write_idx: usize,
+    size: usize,
     data: Vec<u8>,
 }
 
@@ -22,51 +23,43 @@ pub fn create(size: usize) -> RingBuffer {
     RingBuffer {
         read_idx: 0,
         write_idx: 0,
+        size: 0,
         data: vec![0; size],
     }
 }
 
 pub fn write(rb: &mut RingBuffer, elements: &[u8]) -> usize {
     let mut written = 0;
+    let capacity = rb.data.len();
+
     for element in elements {
-        if rb.write_idx >= rb.data.len() {
-            if rb.data[0] == 0 {
-                rb.write_idx = 0;
-            } else {
-                match rb.data[rb.read_idx] {
-                    0 => rb.write_idx = rb.read_idx,
-                    _ => continue,
-                }
-            }
+        if rb.size == capacity {
+            break;
         }
+
         rb.data[rb.write_idx] = *element;
-        rb.write_idx += 1;
+        rb.write_idx = (rb.write_idx + 1) % capacity;
+        rb.size += 1;
         written += 1;
     }
+    
     written
 }
 
 pub fn read(rb: &mut RingBuffer, num_of_elements: usize) -> Vec<u8> {
     let mut elements = Vec::new();
+    let capacity = rb.data.len();
 
     for _ in 0..num_of_elements {
-        if rb.read_idx == rb.data.len() {
-            rb.read_idx = 0;
+        if rb.size == 0 {
+            break;  // Buffer is empty
         }
-        if rb.data[rb.read_idx] == 0 {
-            continue;
-        }
+
         elements.push(rb.data[rb.read_idx]);
-        rb.data[rb.read_idx] = 0;
-        rb.read_idx += 1;
+        rb.read_idx = (rb.read_idx + 1) % capacity;
+        rb.size -= 1;
     }
-    if rb.write_idx >= rb.data.len() {
-        if rb.data[0] == 0 {
-            rb.write_idx = 0;
-        } else {
-            rb.write_idx = rb.read_idx;
-        }
-    }
+
     elements
 }
 
