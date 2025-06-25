@@ -79,6 +79,7 @@ mod tests {
     #[test]
     fn sort_test() {
         let x = [6, 2, 8, 3, 9, 234, 76, 33, 75, 22, 343, 7, 45, 2, 1, 675];
-        merge_sort(&x);
+        let output = merge_sort(&x);
+        assert_eq!(output, [1, 2, 2, 3, 6, 7, 8, 9, 22, 33, 45, 75, 76, 234, 343, 675]);
     }
 }
