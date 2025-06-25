@@ -27,6 +27,7 @@ pub enum RBErrors {
 pub struct RingBuffer {
     read_idx: usize,
     write_idx: usize,
+    size: usize,
     data: Vec<u8>,
 }
 
@@ -34,61 +35,56 @@ pub fn create(size: usize) -> RingBuffer {
     RingBuffer {
         read_idx: 0,
         write_idx: 0,
+        size: 0,
         data: vec![0; size],
     }
 }
 
 pub fn write(rb: &mut RingBuffer, elements: &[u8]) -> Result<usize, RBErrors> {
-    if elements.is_empty() {
-        return Ok(0);
-    }
+    let capacity = rb.data.len();
     let mut written = 0;
-    for element in elements {
-        if rb.write_idx >= rb.data.len() {
-            if rb.data[0] == 0 {
-                rb.write_idx = 0;
-            } else {
-                match rb.data[rb.read_idx] {
-                    0 => rb.write_idx = rb.read_idx,
-                    _ => continue,
-                }
-            }
-        }
-        rb.data[rb.write_idx] = *element;
-        rb.write_idx += 1;
-        written += 1;
+    
+    if elements.len() == 0 {
+        return Ok(written);
     }
-    match written {
-        0 => Err(RBErrors::NoSpaceLeft),
-        written => Ok(written),
+
+    for &element in elements {
+        if rb.size == capacity {
+            break;
+        }
+
+        rb.data[rb.write_idx] = element;
+        written += 1;
+        rb.size += 1;
+        rb.write_idx = (rb.write_idx + 1) % capacity;
+    }
+
+    if written > 0 {
+        Ok(written)
+    } else {
+        Err(RBErrors::NoSpaceLeft)
     }
 }
 
 pub fn read(rb: &mut RingBuffer, num_of_elements: usize) -> Option<Vec<u8>> {
     let mut elements = Vec::new();
+    let capacity = rb.data.len();
 
     for _ in 0..num_of_elements {
-        if rb.read_idx == rb.data.len() {
-            rb.read_idx = 0;
+        if rb.size == 0 {
+            break;
         }
-        if rb.data[rb.read_idx] == 0 {
-            continue;
-        }
+
         elements.push(rb.data[rb.read_idx]);
-        rb.data[rb.read_idx] = 0;
-        rb.read_idx += 1;
+        rb.size -= 1;
+        rb.read_idx = (rb.read_idx + 1) % capacity;
     }
-    if rb.write_idx >= rb.data.len() {
-        if rb.data[0] == 0 {
-            rb.write_idx = 0;
-        } else {
-            rb.write_idx = rb.read_idx;
-        }
+
+    if !elements.is_empty() {
+        Some(elements)
+    } else {
+        None
     }
-    if elements.is_empty() {
-        return None;
-    }
-    Some(elements)
 }
 
 pub fn print(rb: RingBuffer) {
